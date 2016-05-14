@@ -14,6 +14,8 @@ var buffer = require('vinyl-buffer'); // Vinyl stream support
 var watchify = require('watchify'); // Watchify for source changes
 var merge = require('utils-merge'); // Object merge tool
 var duration = require('gulp-duration'); // Time aspects of your gulp process
+var browserSync = require('browser-sync').create();
+
 
 // Configuration for Gulp
 var config = {
@@ -42,6 +44,16 @@ function mapError(err) {
     }
 }
 
+gulp.task('browser-sync', function(cb){
+    browserSync.init({
+        server: {
+            baseDir: "./"
+        }
+    });
+    cb();
+});
+
+
 // Completes the final file outputs
 function bundle(bundler) {
     var bundleTimer = duration('Javascript bundle time');
@@ -61,6 +73,7 @@ function bundle(bundler) {
         .pipe(bundleTimer) // Output time timing of the file creation
         .pipe(livereload()); // Reload the view in the browser
 }
+
 
 // Gulp task for build
 gulp.task('default', function () {

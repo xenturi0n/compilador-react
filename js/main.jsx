@@ -1,16 +1,12 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
+var componente = require('./componente.jsx');
 
-var MyComponent = React.createClass({
-    render: function () {
-        return (<div>MyComponent {this.props.name}</div>)
-    }
-})
 
 
 function run() {
     ReactDOM.render(
-        <MyComponent />, document.getElementById('app')
+        <componente />, document.getElementById('app')
     );
 }
 

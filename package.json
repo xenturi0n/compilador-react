@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/xenturi0n/compilador-react#readme",
   "devDependencies": {
+    "browser-sync": "^2.12.8",
     "gulp": "^3.9.1"
   },
   "dependencies": {
