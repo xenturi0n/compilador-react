@@ -1,3 +1,20 @@
+'use strict';
+
+var gulp = require('gulp');  // Base gulp package
+var babelify = require('babelify'); // Used to convert ES6 & JSX to ES5
+var browserify = require('browserify'); // Providers "require" support, CommonJS
+var notify = require('gulp-notify'); // Provides notification to both the console and Growel
+var rename = require('gulp-rename'); // Rename sources
+var sourcemaps = require('gulp-sourcemaps'); // Provide external sourcemap files
+var livereload = require('gulp-livereload'); // Livereload support for the browser
+var gutil = require('gulp-util'); // Provides gulp utilities, including logging and beep
+var chalk = require('chalk'); // Allows for coloring for logging
+var source = require('vinyl-source-stream'); // Vinyl stream support
+var buffer = require('vinyl-buffer'); // Vinyl stream support
+var watchify = require('watchify'); // Watchify for source changes
+var merge = require('utils-merge'); // Object merge tool
+var duration = require('gulp-duration'); // Time aspects of your gulp process
+
 // Configuration for Gulp
 var config = {
     js: {
