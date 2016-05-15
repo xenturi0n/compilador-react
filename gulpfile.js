@@ -82,9 +82,10 @@ gulp.task('serve', function(cb){
         }
     });
     
+    
     setTimeout(function(){
         cb();
-    },3000);
+    },1000);
 });
 
 
@@ -121,6 +122,13 @@ function initBundle() {
         bundle(bundler); // Re-run bundle on source updates
     });
 }
+
+
+gulp.task('copy', function(cb){
+    return gulp.src([
+            './src/**/*', '!./src/assets/{img,js,scss}', '!./src/assets/{img,js,scss}/**/*'])
+        .pipe(gulp.dest('./dist'))
+});
 
 
 gulp.task('scss', function(){
