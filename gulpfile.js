@@ -21,11 +21,11 @@ var gulpif = require('gulp-if');
 var autoprefixer = require ('gulp-autoprefixer');
 var cssnano = require ('gulp-cssnano');
 var imagemin = require ('gulp-imagemin');
+var uglify = require ('gulp-uglify');
+
+
 //checa el argumento --production
 var PRODUCTION = !!(yargs.argv.production);
-
-
-
 
 gulp.task('test', function(){
     console.log(PRODUCTION);
@@ -35,9 +35,9 @@ gulp.task('test', function(){
 // Configuration for Gulp
 var config = {
     js: {
-        src: './js/main.jsx',
-        watch: './js/**/*',
-        outputDir: './build/',
+        src: './src/assets/js/main.jsx',
+        watch: './src/assets/js/**/*',
+        outputDir: './dist/assets/js',
         outputFile: 'build.js',
     },
     scss: {
@@ -106,8 +106,9 @@ function bundle(bundler) {
         .pipe(source('main.jsx')) // Set source name
         .pipe(buffer()) // Convert to gulp pipeline
         .pipe(rename(config.js.outputFile)) // Rename the output file
-        .pipe(sourcemaps.init({ loadMaps: true })) // Extract the inline sourcemaps
-        .pipe(sourcemaps.write('./map')) // Set folder for sourcemaps to output to
+        .pipe(gulpif(!PRODUCTION, sourcemaps.init({ loadMaps: true }))) // Extract the inline sourcemaps
+        .pipe(gulpif(!PRODUCTION, sourcemaps.write('./map'))) // Set folder for sourcemaps to output to
+        .pipe(gulpif(PRODUCTION, uglify().on('error', function(e){console.log(e);})))
         .pipe(gulp.dest(config.js.outputDir)) // Set the output folder
         .pipe(notify({
             message: 'Archivo Generado: \n-----------\n<%= file.relative %>\n-----------',
@@ -116,20 +117,41 @@ function bundle(bundler) {
 }
 
 //Compila los js la Primera vez
-function initBundle() {
-    var args = merge(watchify.args, { debug: true }); // Merge in default watchify args with browserify arguments
+// function initBundle() {
+//     var args = merge(watchify.args, { debug: true }); // Merge in default watchify args with browserify arguments
 
-    var bundler = browserify(config.js.src, args) // Browserify
-        .plugin(watchify, { ignoreWatch: ['**/node_modules/**', '**/bower_components/**'] }) // Watchify to watch source file changes
-        .transform(babelify, { presets: ['es2015', 'react'] }); // Babel tranforms
+//     var bundler = browserify(config.js.src, args) // Browserify
+//         .plugin(watchify, { ignoreWatch: ['**/node_modules/**', '**/bower_components/**'] }) // Watchify to watch source file changes
+//         .transform(babelify, { presets: ['es2015', 'react'] }); // Babel tranforms
 
-    bundle(bundler); // Run the bundle the first time (required for Watchify to kick in)
+//     bundle(bundler); // Run the bundle the first time (required for Watchify to kick in)
 
-    bundler.on('update', function () {
-        bundle(bundler); // Re-run bundle on source updates
-    });
-}
+//     bundler.on('update', function () {
+//         bundle(bundler); // Re-run bundle on source updates
+//     });
+// }
 
+gulp.task('js', function(){
+    if(!(PRODUCTION)){
+        var args = merge(watchify.args, { debug: true }); // Merge in default watchify args with browserify arguments
+        
+        var bundler = browserify(config.js.src, args) // Browserify
+            .plugin(watchify, { ignoreWatch: ['**/node_modules/**', '**/bower_components/**'] }) // Watchify to watch source file changes
+            .transform(babelify, { presets: ['es2015', 'react'] }); // Babel tranforms
+
+        bundle(bundler); // Run the bundle the first time (required for Watchify to kick in)
+
+        bundler.on('update', function () {
+            bundle(bundler); // Re-run bundle on source updates
+        });
+    }else{
+        var args = {debug: false};
+        var bundler = browserify(config.js.src, args) // Browserify
+            .transform(babelify, { presets: ['es2015', 'react'] }); // Babel tranforms
+
+        bundle(bundler); // Run the bundle the first time (required for Watchify to kick in)
+    }
+});
 
 gulp.task('copy', function(cb){
     return gulp.src(config.copy.src)
