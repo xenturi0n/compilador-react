@@ -43,7 +43,7 @@ var config = {
     scss: {
         src: './src/assets/scss',
         watch: './src/assets/scss/**/*',
-        outputDir: './dist/assets/scss',
+        outputDir: './dist/assets/css',
         inputFile: './src/assets/scss/main.scss',
         outputFile: 'styles.css'
     }
@@ -66,15 +66,26 @@ function mapError(err) {
     }
 }
 
-function serve() {
+// function serve() {
+//     browserSync.init({
+//         server: {
+//             baseDir: "./",
+//             server: "./"
+//         }
+//     });
+// }
+gulp.task('serve', function(cb){
     browserSync.init({
         server: {
             baseDir: "./",
             server: "./"
         }
     });
-}
-
+    
+    setTimeout(function(){
+        cb();
+    },3000);
+});
 
 
 // Completes the final file outputs
@@ -132,10 +143,10 @@ gulp.task('scss', function(){
 });
 
 // Gulp task for build
-gulp.task('watch', function(){
-    serve();
+gulp.task('watch', ['serve'], function(){
+    // serve();
     // initBundle();
     
     // gulp.watch("build/*.js").on('change', browserSync.reload);
-    gulp.watch(config.scss.watch, ['scss'], browserSync.reload);
+    gulp.watch(config.scss.watch, ['scss']);
 });
