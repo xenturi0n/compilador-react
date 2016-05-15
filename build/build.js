@@ -10,21 +10,23 @@ var MyComponent = React.createClass({
         return React.createElement(
             'div',
             null,
-            'Mi componente ',
-            this.props.name
+            ' el me ssssssssssssssss nsaje'
         );
     }
 });
+
+module.exports = MyComponent;
 
 },{"react":169}],2:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
 var ReactDOM = require('react-dom');
-var componente = require('./componente.jsx');
+
+var MyComponent = require('./MyComponent.jsx');
 
 function run() {
-    ReactDOM.render(React.createElement('componente', null), document.getElementById('app'));
+    ReactDOM.render(React.createElement(MyComponent, null), document.getElementById('app'));
 }
 
 var loadedStates = ['complete', 'loaded', 'interactive'];
@@ -35,7 +37,7 @@ if (loadedStates.includes(document.readyState) && document.body) {
     window.addEventListener('DOMContentLoaded', run, false);
 }
 
-},{"./componente.jsx":1,"react":169,"react-dom":4}],3:[function(require,module,exports){
+},{"./MyComponent.jsx":1,"react":169,"react-dom":4}],3:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};

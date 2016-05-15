@@ -1,12 +1,13 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-var componente = require('./componente.jsx');
+
+var MyComponent = require('./MyComponent.jsx');
 
 
 
 function run() {
     ReactDOM.render(
-        <componente />, document.getElementById('app')
+        <MyComponent />, document.getElementById('app')
     );
 }
 
