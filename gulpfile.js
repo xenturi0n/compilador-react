@@ -20,7 +20,7 @@ var yargs = require('yargs');
 var gulpif = require('gulp-if');
 var autoprefixer = require ('gulp-autoprefixer');
 var cssnano = require ('gulp-cssnano');
-
+var imagemin = require ('gulp-imagemin');
 //checa el argumento --production
 var PRODUCTION = !!(yargs.argv.production);
 
@@ -46,6 +46,22 @@ var config = {
         outputDir: './dist/assets/css',
         inputFile: './src/assets/scss/main.scss',
         outputFile: 'styles.css'
+    },
+    html: {
+        src: './src/*.html',
+        outputDir: './dist'
+    },
+    images:{
+        src: './src/assets/img/**/*',
+        outputDir: './dist/assets/img'
+    },
+    copy: {
+        src: ['./src/**/*', '!./src/assets/{img,js,scss}', '!./src/assets/{img,js,scss}/**/*'],
+        outputDir: './dist'
+    },
+    server: {
+        baseDir: "./",
+        server: "./"
     }
 };
 
@@ -66,22 +82,13 @@ function mapError(err) {
     }
 }
 
-// function serve() {
-//     browserSync.init({
-//         server: {
-//             baseDir: "./",
-//             server: "./"
-//         }
-//     });
-// }
 gulp.task('serve', function(cb){
     browserSync.init({
         server: {
-            baseDir: "./",
-            server: "./"
+            baseDir: config.server.baseDir,
+            server: config.server.server
         }
     });
-    
     
     setTimeout(function(){
         cb();
@@ -125,9 +132,8 @@ function initBundle() {
 
 
 gulp.task('copy', function(cb){
-    return gulp.src([
-            './src/**/*', '!./src/assets/{img,js,scss}', '!./src/assets/{img,js,scss}/**/*'])
-        .pipe(gulp.dest('./dist'))
+    return gulp.src(config.copy.src)
+        .pipe(gulp.dest(config.copy.outputDir))
 });
 
 
@@ -148,6 +154,19 @@ gulp.task('scss', function(){
         })) // Output the file being created
         .pipe(bundleTimer); // Output time timing of the file creation   
         
+});
+
+gulp.task('html', function(){
+    return gulp.src(config.html.src)
+        .pipe(gulp.dest(config.html.outputDir))
+});
+
+gulp.task('images', function(){
+    return gulp.src(config.images.src)
+        .pipe(gulpif(PRODUCTION, imagemin({
+            progressive: true
+        })))
+        .pipe(gulp.dest(config.images.outputDir));
 });
 
 // Gulp task for build
