@@ -51,6 +51,8 @@ var config = {
         watch: 'src/assets/scss/**/*.scss',     //gulp watch no funciona con rutas absolutas
         outputDir: './dist/assets/css',
         inputFile: './src/assets/scss/main.scss',
+        inputFileName: 'main.scss',
+        inputDir: './src/assets/scss',
         outputFile: 'styles.css'
     },
     html: {
@@ -133,12 +135,17 @@ gulp.task('clean:all', function(cb){
 
 
 gulp.task('initialize', ["clean:all"], function(){
-  config.src.dirs.map(function(dir){
-      mkdirp.sync(dir);
-  });
-  mkdirp.sync('./dist');
-  file(config.js.inputFile,'')
-    .pipe(gulp.dest(config.js.srcDir));
+    config.src.dirs.map(function(dir){
+        mkdirp.sync(dir);
+    });
+    mkdirp.sync('./dist');
+    
+    file(config.js.inputFile,'')
+        .pipe(gulp.dest(config.js.srcDir));
+        
+    file(config.scss.inputFileName,'')
+        .pipe(gulp.dest(config.scss.inputDir));
+  
 });
 
 // Completes the final file outputs
@@ -151,7 +158,7 @@ function bundle(bundler) {
     console.log('Iniciando bundler js <<<<<<<<<<<<<<<<<<<<<<<<<<');
     bundler
         .bundle()
-        // .on('error', mapError) // Map error reporting
+        .on('error', mapError) // Map error reporting
         .pipe(source('main.js')) // Set source name
         .pipe(buffer()) // Convert to gulp pipeline
         .pipe(rename(config.js.outputFile)) // Rename the output file
@@ -226,6 +233,8 @@ gulp.task('scss', function(){
 // }
 
 gulp.task('html', function(){
+    del.sync([config.html.outputDir + '/*.html']);
+    
     console.log("ejecutando tarea HTML <<<<<<<<<<")
     return gulp.src(config.html.src)
         .pipe(gulp.dest(config.html.outputDir))
