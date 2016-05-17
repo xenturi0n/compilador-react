@@ -4,6 +4,9 @@
   "description": "Trabajo rapido con gulp, browserify, babelify, watchify y react",
   "main": "index.js",
   "scripts": {
+    "inicializar": "gulp initialize",
+    "start": "gulp start",
+    "compilar": "gulp compile --production",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

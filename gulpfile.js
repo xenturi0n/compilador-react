@@ -255,3 +255,4 @@ gulp.task('watch', function(){
 });
 
 gulp.task('start', ['clean:dist', 'copy', 'serve', 'js', 'scss', 'html', 'images', 'watch']);
+gulp.task('compile', ['clean:dist', 'copy', 'js', 'scss', 'html', 'images']);
