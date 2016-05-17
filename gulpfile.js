@@ -22,6 +22,9 @@ var autoprefixer = require ('gulp-autoprefixer');
 var cssnano = require ('gulp-cssnano');
 var imagemin = require ('gulp-imagemin');
 var uglify = require ('gulp-uglify');
+var del = require ('del');
+var mkdirp = require ('mkdirp');
+var file = require ('gulp-file');
 
 
 //checa el argumento --production
@@ -35,33 +38,45 @@ gulp.task('test', function(){
 // Configuration for Gulp
 var config = {
     js: {
-        src: './src/assets/js/main.jsx',
-        watch: './src/assets/js/**/*',
+        src: './src/assets/js/main.js',
+        srcDir: './src/assets/js',
+        watch: './src/assets/js/**/*', 
         outputDir: './dist/assets/js',
-        outputFile: 'build.js',
+        outputFile: 'app.js',
+        inputFile: 'main.js',
+        sourceMap: './dist/assets/js/sourceMap'
     },
     scss: {
         src: './src/assets/scss',
-        watch: './src/assets/scss/**/*',
+        watch: 'src/assets/scss/**/*.scss',     //gulp watch no funciona con rutas absolutas
         outputDir: './dist/assets/css',
         inputFile: './src/assets/scss/main.scss',
         outputFile: 'styles.css'
     },
     html: {
         src: './src/*.html',
+        watch: 'src/*.html',
         outputDir: './dist'
     },
     images:{
         src: './src/assets/img/**/*',
+        watch: 'src/assets/img/**/*',
         outputDir: './dist/assets/img'
     },
     copy: {
-        src: ['./src/**/*', '!./src/assets/{img,js,scss}', '!./src/assets/{img,js,scss}/**/*'],
+        src: ['src/**/*', '!./src/assets/{img,js,scss}', '!./src/assets/{img,js,scss}/**/*'],
         outputDir: './dist'
     },
     server: {
-        baseDir: "./",
-        server: "./"
+        baseDir: "./dist",
+        server: "./dist"
+    },
+    src:{
+        baseDir: "./src",
+        dirs: ['./src/assets/fonts',
+               './src/assets/img',
+               './src/assets/js',
+               './src/assets/scss']
     }
 };
 
@@ -95,42 +110,63 @@ gulp.task('serve', function(cb){
     },1000);
 });
 
+gulp.task('copy', function(cb){
+    return gulp.src(config.copy.src)
+        .pipe(gulp.dest(config.copy.outputDir))
+});
+
+gulp.task('clean:dist', function(cb){
+    del.sync([
+        './dist'
+    ]);
+    mkdirp.sync('./dist');
+    cb();
+});
+
+gulp.task('clean:all', function(cb){
+    del.sync([
+        './dist',
+        './src'
+    ]);
+    cb();
+});
+
+
+gulp.task('initialize', ["clean:all"], function(){
+  config.src.dirs.map(function(dir){
+      mkdirp.sync(dir);
+  });
+  mkdirp.sync('./dist');
+  file(config.js.inputFile,'')
+    .pipe(gulp.dest(config.js.srcDir));
+});
 
 // Completes the final file outputs
 function bundle(bundler) {
     var bundleTimer = duration('Javascript bundle time');
-
+    if(PRODUCTION){
+        del([config.js.sourceMap]);
+    }
+    
+    console.log('Iniciando bundler js <<<<<<<<<<<<<<<<<<<<<<<<<<');
     bundler
         .bundle()
-        .on('error', mapError) // Map error reporting
-        .pipe(source('main.jsx')) // Set source name
+        // .on('error', mapError) // Map error reporting
+        .pipe(source('main.js')) // Set source name
         .pipe(buffer()) // Convert to gulp pipeline
         .pipe(rename(config.js.outputFile)) // Rename the output file
         .pipe(gulpif(!PRODUCTION, sourcemaps.init({ loadMaps: true }))) // Extract the inline sourcemaps
-        .pipe(gulpif(!PRODUCTION, sourcemaps.write('./map'))) // Set folder for sourcemaps to output to
+        .pipe(gulpif(!PRODUCTION, sourcemaps.write('./sourceMap'))) // Set folder for sourcemaps to output to
         .pipe(gulpif(PRODUCTION, uglify().on('error', function(e){console.log(e);})))
-        .pipe(gulp.dest(config.js.outputDir)) // Set the output folder
+        .pipe(gulp.dest(config.js.outputDir)) // Set the output folder        
         .pipe(notify({
             message: 'Archivo Generado: \n-----------\n<%= file.relative %>\n-----------',
         })) // Output the file being created
-        .pipe(bundleTimer) // Output time timing of the file creation        
+        .pipe(bundleTimer) // Output time timing of the file creation
+        .pipe(browserSync.stream());
 }
 
-//Compila los js la Primera vez
-// function initBundle() {
-//     var args = merge(watchify.args, { debug: true }); // Merge in default watchify args with browserify arguments
-
-//     var bundler = browserify(config.js.src, args) // Browserify
-//         .plugin(watchify, { ignoreWatch: ['**/node_modules/**', '**/bower_components/**'] }) // Watchify to watch source file changes
-//         .transform(babelify, { presets: ['es2015', 'react'] }); // Babel tranforms
-
-//     bundle(bundler); // Run the bundle the first time (required for Watchify to kick in)
-
-//     bundler.on('update', function () {
-//         bundle(bundler); // Re-run bundle on source updates
-//     });
-// }
-
+//con el parametro --production no se ejecuta watchify
 gulp.task('js', function(){
     if(!(PRODUCTION)){
         var args = merge(watchify.args, { debug: true }); // Merge in default watchify args with browserify arguments
@@ -153,14 +189,8 @@ gulp.task('js', function(){
     }
 });
 
-gulp.task('copy', function(cb){
-    return gulp.src(config.copy.src)
-        .pipe(gulp.dest(config.copy.outputDir))
-});
-
-
 gulp.task('scss', function(){
-    var bundleTimer = duration('Javascript bundle time');
+    var bundleTimer = duration('SCSS tiempo de compilacion: ');
      
     return gulp.src(config.scss.inputFile)
         .pipe(sourcemaps.init())
@@ -169,33 +199,59 @@ gulp.task('scss', function(){
         .pipe(gulpif(PRODUCTION, cssnano()))
         .pipe(gulpif(!PRODUCTION, sourcemaps.write()))
         .pipe(rename(config.scss.outputFile))
-        .pipe(gulp.dest(config.scss.outputDir))
-        .pipe(browserSync.stream())
+        .pipe(gulp.dest(config.scss.outputDir))        
         .pipe(notify({
             message: 'Archivo Generado: \n-----------\n<%= file.relative %>\n-----------',
         })) // Output the file being created
-        .pipe(bundleTimer); // Output time timing of the file creation   
-        
+        .pipe(bundleTimer) // Output time timing of the file creation   
+        .pipe(browserSync.stream());
 });
 
+// function scss(){
+//     var bundleTimer = duration('SCSS tiempo de compilacion: ');
+     
+//     return gulp.src(config.scss.inputFile)
+//         .pipe(sourcemaps.init())
+//         .pipe(sass().on('error', sass.logError))
+//         .pipe(autoprefixer({browser: 'last 2 versions'}))
+//         .pipe(gulpif(PRODUCTION, cssnano()))
+//         .pipe(gulpif(!PRODUCTION, sourcemaps.write()))
+//         .pipe(rename(config.scss.outputFile))
+//         .pipe(gulp.dest(config.scss.outputDir))
+//         .pipe(browserSync.stream())
+//         .pipe(notify({
+//             message: 'Archivo Generado: \n-----------\n<%= file.relative %>\n-----------',
+//         })) // Output the file being created
+//         .pipe(bundleTimer); // Output time timing of the file creation  
+// }
+
 gulp.task('html', function(){
+    console.log("ejecutando tarea HTML <<<<<<<<<<")
     return gulp.src(config.html.src)
         .pipe(gulp.dest(config.html.outputDir))
+        .pipe(browserSync.stream());
 });
 
 gulp.task('images', function(){
+    del.sync([config.images.outputDir + '/**/*']);
+    
+    console.log("Ejecutando Imagenes <<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
     return gulp.src(config.images.src)
         .pipe(gulpif(PRODUCTION, imagemin({
             progressive: true
         })))
-        .pipe(gulp.dest(config.images.outputDir));
+        .pipe(gulp.dest(config.images.outputDir))
+        .pipe(browserSync.stream());
 });
 
-// Gulp task for build
-gulp.task('watch', ['serve'], function(){
-    // serve();
-    // initBundle();
+//Tarea para observar cambios en src
+//la observacion de los cambios en los js la hace
+//directamente watchify
+gulp.task('watch', function(){
     
-    // gulp.watch("build/*.js").on('change', browserSync.reload);
+    gulp.watch(config.html.watch, ['html']);
     gulp.watch(config.scss.watch, ['scss']);
+    gulp.watch(config.images.watch, ['images']);
 });
+
+gulp.task('start', ['clean:dist', 'copy', 'serve', 'js', 'scss', 'html', 'images', 'watch']);
