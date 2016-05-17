@@ -38,12 +38,12 @@ gulp.task('test', function(){
 // Configuration for Gulp
 var config = {
     js: {
-        src: './src/assets/js/main.js',
+        src: './src/assets/js/main.jsx',
         srcDir: './src/assets/js',
         watch: './src/assets/js/**/*', 
         outputDir: './dist/assets/js',
         outputFile: 'app.js',
-        inputFile: 'main.js',
+        inputFile: 'main.jsx',
         sourceMap: './dist/assets/js/sourceMap'
     },
     scss: {
@@ -159,7 +159,7 @@ function bundle(bundler) {
     bundler
         .bundle()
         .on('error', mapError) // Map error reporting
-        .pipe(source('main.js')) // Set source name
+        .pipe(source('main.jsx')) // Set source name
         .pipe(buffer()) // Convert to gulp pipeline
         .pipe(rename(config.js.outputFile)) // Rename the output file
         .pipe(gulpif(!PRODUCTION, sourcemaps.init({ loadMaps: true }))) // Extract the inline sourcemaps
@@ -213,24 +213,6 @@ gulp.task('scss', function(){
         .pipe(bundleTimer) // Output time timing of the file creation   
         .pipe(browserSync.stream());
 });
-
-// function scss(){
-//     var bundleTimer = duration('SCSS tiempo de compilacion: ');
-     
-//     return gulp.src(config.scss.inputFile)
-//         .pipe(sourcemaps.init())
-//         .pipe(sass().on('error', sass.logError))
-//         .pipe(autoprefixer({browser: 'last 2 versions'}))
-//         .pipe(gulpif(PRODUCTION, cssnano()))
-//         .pipe(gulpif(!PRODUCTION, sourcemaps.write()))
-//         .pipe(rename(config.scss.outputFile))
-//         .pipe(gulp.dest(config.scss.outputDir))
-//         .pipe(browserSync.stream())
-//         .pipe(notify({
-//             message: 'Archivo Generado: \n-----------\n<%= file.relative %>\n-----------',
-//         })) // Output the file being created
-//         .pipe(bundleTimer); // Output time timing of the file creation  
-// }
 
 gulp.task('html', function(){
     del.sync([config.html.outputDir + '/*.html']);
